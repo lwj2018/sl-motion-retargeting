@@ -7,7 +7,6 @@ from Quaternions import Quaternions
 import rosbag
 import pdb
 import h5py
-import numpy as np
 import tf
 
 import sys
@@ -17,6 +16,20 @@ import cv2
 import rospy
 import os
 from cv_bridge import CvBridge, CvBridgeError
+
+def linear_interpolate(quaternions,tgt_len):
+    src_len = quaternions.shape[0]
+    src_points = np.linspace(0,1,src_len)
+    tgt_points = np.linspace(0,1,tgt_len)
+    result = np.zeros([tgt_len]+list(quaternions.shape[1:])+[4])
+    for i,tgt_point in enumerate(tgt_points):
+        down_val = np.max(src_points[src_points<=tgt_point])
+        up_val = np.min(src_points[src_points>=tgt_point]) 
+        p = (tgt_point - down_val)/float(up_val-down_val) if up_val>down_val else 0.0
+        quat1 = quaternions[src_points==down_val,...]
+        quat2 = quaternions[src_points==up_val,...]
+        result[i] = np.array(Quaternions.slerp(quat1,quat2,p))
+    return result
 
 def pos_to_ndarray(pos):
     # combined position and orientation information of a geometry_msgs/Pose message into a list
@@ -116,14 +129,18 @@ def bag_to_bvh(bag_name, bvh_name):
     # l_hand_pos/l_hand_quat, l_forearm_pos/l_forearm_quat, l_upperarm_pos/l_upperarm_quat; after this, do an extraction to get wrist, elbow information for use in sign language robot!!!
     # store each part separately!!!  
 
+   # Interpolate & transform to euler
+    root = np.array([0.919788, 78.902473, 8.082646])
+    rotations = np.stack([l_up_quat,l_fr_quat,l_hd_quat,r_up_quat,r_fr_quat,r_hd_quat],1)
+    rotations = Quaternions(rotations)
+    rotations = linear_interpolate(rotations,128)
+    eulers = quat_to_euler(rotations)
+    # Write to BVH
     f = open(bvh_name, "a") # open in append mode
-    frame = count
+    frame = eulers.shape[0]
     frametime = 1/30.0
     joint_num = 29
     file_string = '\nMOTION\n' + 'Frames: {}\n'.format(frame) + 'Frame Time: %.8f\n' % frametime
-    root = np.array([0.919788, 78.902473, 8.082646])
-    rotations = np.stack([l_up_quat,l_fr_quat,l_hd_quat,r_up_quat,r_fr_quat,r_hd_quat],1)
-    eulers = quat_to_euler(rotations)
     for euler  in eulers:
         file_string += '%.6f %.6f %.6f ' % (root[0], root[1], root[2])
         for i in range(joint_num):

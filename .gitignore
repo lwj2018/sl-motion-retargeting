@@ -1,2 +1,8 @@
 .vscode
 *.pyc 
+runs
+pyc
+checkpoint
+*.DS_Store*
+.git
+.vscode

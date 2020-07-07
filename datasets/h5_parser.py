@@ -8,6 +8,7 @@ class h5Parser:
         self.f =  h5py.File(h5_name, "r") 
 
     def parse(self,group_name):
+        # @return q,p: np.ndarray
         ## Read needed data from mocap file
 
         l_wrist_pos = self.f[group_name + '/l_hd_pos'][:]

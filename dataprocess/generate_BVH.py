@@ -150,11 +150,11 @@ def bag_to_bvh(bag_name, bvh_name):
                 file_string += '%.6f %.6f %.6f ' % (euler[1][2], euler[1][1], euler[1][0])
             elif i==23:
                 file_string += '%.6f %.6f %.6f ' % (euler[2][2], euler[2][1], euler[2][0])
-            elif i==25:
-                file_string += '%.6f %.6f %.6f ' % (euler[3][2], euler[3][1], euler[3][0])
             elif i==26:
-                file_string += '%.6f %.6f %.6f ' % (euler[4][2], euler[4][1], euler[4][0])
+                file_string += '%.6f %.6f %.6f ' % (euler[3][2], euler[3][1], euler[3][0])
             elif i==27:
+                file_string += '%.6f %.6f %.6f ' % (euler[4][2], euler[4][1], euler[4][0])
+            elif i==28:
                 file_string += '%.6f %.6f %.6f ' % (euler[5][2], euler[5][1], euler[5][0])
             else:
                 file_string += '%.6f %.6f %.6f ' % (0, 0, 0)

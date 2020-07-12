@@ -13,8 +13,8 @@ train_list = "/media/liweijie/代码和数据/datasets/motionRetargeting/train.t
 test_list = "/media/liweijie/代码和数据/datasets/motionRetargeting/test.txt"
 
 def linear_interpolate_q(quaternions,tgt_len):
-    # quaternions: Quaternions
-    # return result: np.ndarray
+    #@param:quaternions         Quaternions
+    #＠return:result                       np.ndarray
     src_len = quaternions.shape[0]
     src_points = np.linspace(0,1,src_len)
     tgt_points = np.linspace(0,1,tgt_len)
@@ -31,9 +31,9 @@ def linear_interpolate_q(quaternions,tgt_len):
 def lerp(pos1,pos2,p):
     return p*pos2+(1-p)*pos1
 
-def linear_interpolate_p(positions,tgt_len):
-    # positions: np.ndarray
-    # return result: np.ndarray
+def linear_interpolate(positions,tgt_len):
+    #@param:positions        np.ndarray
+    #@return:result                np.ndarray
     src_len = positions.shape[0]
     src_points = np.linspace(0,1,src_len)
     tgt_points = np.linspace(0,1,tgt_len)
@@ -67,15 +67,17 @@ class MocapDataset(Dataset):
     def __getitem__(self,index):
         # Parse from H5 file
         group_name = self.group_name_list[index]
-        q, p = self.h5parser.parse(group_name)
+        q, p, glove_angle = self.h5parser.parse(group_name)
         q = Quaternions(q)
         # Linear interpolate
         q = linear_interpolate_q(q, self.length)
-        p = linear_interpolate_p(p, self.length) 
+        p = linear_interpolate(p, self.length) 
+        glove_angle = linear_interpolate(glove_angle, self.length)
         # convert to torch.Tensor
         q = torch.Tensor(q)
         p = torch.Tensor(p)
-        return q, p
+        glove_angle = torch.Tensor(glove_angle)
+        return q, p, glove_angle, group_name
 
 # test 
 if __name__=="__main__":

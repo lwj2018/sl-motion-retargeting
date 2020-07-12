@@ -6,3 +6,4 @@ checkpoint
 *.DS_Store*
 .git
 .vscode
+*__pycache__

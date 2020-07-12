@@ -43,14 +43,20 @@ def pos_to_ndarray(pos):
     return np.array([pos.x, pos.y, pos.z])
 
 def quat_to_ndarray(quat):
-    # returned quaternion is (x,y,z,w)
-    return np.array([quat.x, quat.y, quat.z, quat.w])
+    # returned quaternion is (w,x,y,z)
+    return np.array([quat.w, quat.x, quat.y, quat.z])
 
 def quat_to_euler(rotations):
     norm = rotations[:, :, 0] ** 2 + rotations[:, :, 1] ** 2 + rotations[:, :, 2] ** 2 + rotations[:, :, 3] ** 2
     norm = np.repeat(norm[:, :, np.newaxis], 4, axis=2)
     rotations /= norm
     rotations = Quaternions(rotations)
+    local_to_word = Quaternions(np.array([[[-0.5,0.5,0.5,0.5]]]))
+    rotations = local_to_word*rotations
+    # rotations[:,2] =  -rotations[:,1]*rotations[:,2]
+    # rotations[:,1] =  -rotations[:,0]*rotations[:,1]
+    # rotations[:,5] = -rotations[:,4]*rotations[:,5]
+    # rotations[:,4] = -rotations[:,3]*rotations[:,4]
     rotations = np.degrees(rotations.euler())
     return rotations
 

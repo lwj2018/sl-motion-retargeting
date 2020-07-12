@@ -30,7 +30,8 @@ class Encoder_h(nn.Module):
         self.fc3 = nn.Linear(128,64)     
 
     def forward(self,x):
-        # x = x.flatten(start_dim=-2)
+        # Shape of input x is: N x T x J x 4
+        x = x.flatten(start_dim=-2)
         # After permute, shape of x is: N x D(Jx4) x T
         x = x.permute(0,2,1)
         x = F.relu(self.conv1(x))
@@ -66,7 +67,8 @@ class Decoder_h(nn.Module):
         x = F.relu(self.fc1(x))
         x= F.relu(self.fc2(x))
         x = self.fc3(x)
-        # After forward, shape of x is: N x T x D(Jx4)
+        # After forward, shape of x is: N x T x J x 4
+        x = x.view(x.size()[:2]+(-1,4))
         return x
 
 def train_one_epoch(model, criterion, optimizer, trainloader, device, epoch, log_interval, writer):
@@ -88,15 +90,12 @@ def train_one_epoch(model, criterion, optimizer, trainloader, device, epoch, log
 
         # get the inputs
         q, p = [x.to(device) for x in data]
-        q = q.flatten(start_dim=-2)
-
 
         optimizer.zero_grad()
         # forward
         outputs = model(q)
 
         # compute the loss
-        # tgt = pack_padded_sequence(tgt,tgt_len_list)
         loss = criterion(outputs,q)
         # backward & optimize
         loss.backward()
@@ -138,7 +137,6 @@ def test_one_epoch(model, criterion, testloader, device, epoch, log_interval, wr
 
             # get the inputs
             q, p = [x.to(device) for x in data]
-            q = q.flatten(start_dim=-2)
 
             # forward
             outputs = model(q)
